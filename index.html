@@ -1,273 +1,166 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<!-- Twitter (X) カードの設定 -->
 <meta name="twitter:card" content="summary_large_image" />
 <meta property="og:url" content="https://github.io" />
-<meta property="og:title" content="SIGNAL LOCK - 動く信号をロックオンするミニゲーム" />
-<meta property="og:description" content="反射神経が試されるミニゲーム！画面を反射しながら動き回るターゲットを制限時間内にすべて見つけ出そう。" />
+<meta property="og:title" content="SIGNAL LOCK" />
+<meta property="og:description" content="動き回る数字の中から、指定された番号だけを制限時間内にタップするゲーム。" />
 <meta property="og:image" content="https://github.iotwitter-card.JPG" />
-
 
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
 <title>SIGNAL LOCK</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-  :root{
-    --bg: #080B10;
-    --panel: #10161F;
-    --panel-line: #202A38;
-    --cyan: #52E0E8;
-    --cyan-dim: #235257;
-    --amber: #FFB74D;
-    --coral: #FF5C6C;
-    --mint: #6EE7B7;
-    --text: #E8EDF4;
-    --muted: #6C7A8C;
-  }
-  *{ box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-  html,body{
-    margin:0; padding:0; height:100%;
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'Space Grotesk', sans-serif;
-    overflow: hidden;
-    touch-action: manipulation;
-    user-select: none;
-  }
-  .mono{ font-family: 'JetBrains Mono', monospace; }
+:root{
+  --bg: #12141a;
+  --panel: #191c23;
+  --line: #2b2f38;
+  --accent: #4fa3a8;
+  --bad: #c9605f;
+  --good: #6fa87c;
+  --text: #dcdfe3;
+  --sub: #767c86;
+}
+*{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+html,body{
+  margin:0; padding:0; height:100%;
+  background:var(--bg);
+  color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;
+  overflow:hidden;
+  touch-action:manipulation;
+  user-select:none;
+}
+.num{ font-family:"Courier New",Consolas,monospace; }
 
-  #app{
-    height:100%;
-    display:flex;
-    flex-direction:column;
-    max-width: 520px;
-    margin: 0 auto;
-    position: relative;
-  }
+#app{
+  height:100%;
+  display:flex;
+  flex-direction:column;
+  max-width:520px;
+  margin:0 auto;
+  position:relative;
+}
 
-  /* ---------- HEADER ---------- */
-  header{
-    display:flex;
-    align-items:flex-start;
-    justify-content:space-between;
-    padding: 14px 16px 8px;
-    gap: 12px;
-  }
-  .target-block{
-    display:flex; flex-direction:column; gap:6px;
-    flex: 1 1 auto;
-    min-width: 0;
-  }
-  .target-label{
-    font-size: 10px;
-    letter-spacing: 3px;
-    color: var(--muted);
-  }
-  .target-badges{
-    display:flex; flex-wrap:wrap; gap:6px;
-  }
-  .signal-badge{
-    min-width: 34px; height:34px;
-    padding: 0 6px;
-    border-radius: 50%;
-    background: radial-gradient(circle at 35% 30%, #1a2733, #0c1319 70%);
-    border: 2px solid var(--cyan);
-    box-shadow: 0 0 10px rgba(82,224,232,0.5), inset 0 0 8px rgba(82,224,232,0.2);
-    display:flex; align-items:center; justify-content:center;
-    font-size: 14px; font-weight: 800;
-    color: var(--cyan);
-    text-shadow: 0 0 8px rgba(82,224,232,0.8);
-    flex-shrink:0;
-    animation: pulse 1.8s ease-in-out infinite;
-    transition: opacity .2s, border-color .2s, box-shadow .2s;
-  }
-  .signal-badge.found{
-    border-color: var(--mint);
-    color: var(--mint);
-    text-shadow: 0 0 8px rgba(110,231,183,0.8);
-    box-shadow: 0 0 10px rgba(110,231,183,0.5);
-    opacity: 0.55;
-    animation: none;
-  }
-  @keyframes pulse{
-    0%,100%{ box-shadow: 0 0 10px rgba(82,224,232,0.5), inset 0 0 8px rgba(82,224,232,0.2); }
-    50%{ box-shadow: 0 0 18px rgba(82,224,232,0.8), inset 0 0 10px rgba(82,224,232,0.35); }
-  }
-  .hud{
-    display:flex; gap: 14px;
-    text-align:right;
-    flex-shrink:0;
-  }
-  .hud-item .hud-label{
-    font-size: 9px; letter-spacing: 2px; color: var(--muted); margin-bottom:2px;
-  }
-  .hud-item .hud-value{
-    font-size: 19px; font-weight: 700;
-  }
-  #elapsedVal{ color: var(--text); }
-  #countdownVal{ color: var(--amber); transition: color .2s; }
-  #countdownVal.danger{ color: var(--coral); }
+header{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  padding:14px 16px 6px;
+  gap:12px;
+}
+.target-block{ display:flex; flex-direction:column; gap:6px; flex:1 1 auto; min-width:0; }
+.target-label{ font-size:11px; letter-spacing:2px; color:var(--sub); }
+.target-badges{ display:flex; flex-wrap:wrap; gap:6px; }
+.signal-badge{
+  min-width:32px; height:32px;
+  padding:0 6px;
+  border-radius:6px;
+  background:#1e222a;
+  border:1px solid var(--accent);
+  display:flex; align-items:center; justify-content:center;
+  font-size:14px; font-weight:700;
+  color:var(--accent);
+  flex-shrink:0;
+}
+.signal-badge.found{
+  border-color:var(--good);
+  color:var(--good);
+  opacity:0.5;
+}
+.hud{ display:flex; gap:16px; text-align:right; flex-shrink:0; }
+.hud-item .hud-label{ font-size:10px; letter-spacing:1px; color:var(--sub); margin-bottom:2px; }
+.hud-item .hud-value{ font-size:18px; font-weight:700; }
+#countdownVal{ color:#c99a4f; }
+#countdownVal.danger{ color:var(--bad); }
 
-  /* ---------- ROUND PIPS ---------- */
-  .pips{
-    display:flex; gap:5px; justify-content:center;
-    padding: 2px 16px 10px;
-  }
-  .pip{
-    width: 16px; height:4px; border-radius:2px;
-    background: var(--panel-line);
-    transition: background .3s;
-  }
-  .pip.done{ background: var(--mint); }
-  .pip.current{ background: var(--cyan); box-shadow: 0 0 6px var(--cyan); }
+.pips{ display:flex; gap:5px; justify-content:center; padding:2px 16px 10px; }
+.pip{ width:15px; height:3px; background:var(--line); }
+.pip.done{ background:var(--good); }
+.pip.current{ background:var(--accent); }
 
-  /* ---------- ARENA ---------- */
-  #arenaWrap{
-    flex:1;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    padding: 4px 16px 16px;
-    min-height:0;
-  }
-  #arena{
-    position:relative;
-    width: min(100%, 480px);
-    aspect-ratio: 1/1;
-    max-height: 100%;
-    background: var(--panel);
-    border: 1px solid var(--panel-line);
-    border-radius: 12px;
-    overflow:hidden;
-    background-image:
-      repeating-radial-gradient(circle at 50% 50%, rgba(82,224,232,0.05) 0, rgba(82,224,232,0.05) 1px, transparent 1px, transparent 46px),
-      linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
-    background-size: auto, 24px 24px, 24px 24px;
-  }
-  #sweep{
-    position:absolute; inset:0;
-    background: conic-gradient(from 0deg, rgba(82,224,232,0.18), transparent 22%, transparent 100%);
-    animation: spin 6s linear infinite;
-    pointer-events:none;
-  }
-  @media (prefers-reduced-motion: reduce){
-    #sweep{ animation: none; opacity:0.06; }
-    .beacon{ animation:none; }
-  }
-  @keyframes spin{ to{ transform: rotate(360deg); } }
+#arenaWrap{ flex:1; display:flex; align-items:center; justify-content:center; padding:4px 16px 16px; min-height:0; }
+#arena{
+  position:relative;
+  width:min(100%,480px);
+  aspect-ratio:1/1;
+  max-height:100%;
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:6px;
+  overflow:hidden;
+}
+.chip{
+  position:absolute;
+  width:44px; height:44px;
+  border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  background:#232830;
+  border:1px solid #3a4048;
+  color:var(--text);
+  font-weight:700; font-size:15px;
+  cursor:pointer;
+  will-change:transform;
+}
+.chip:active{ transform:scale(0.9); }
+.chip.wrong{ border-color:var(--bad); animation:shake .25s; }
+.chip.correct{ border-color:var(--good); transition:opacity .35s; }
+.chip.correct.fade{ opacity:0; }
+@keyframes shake{
+  0%,100%{ transform:translateX(0); }
+  30%{ transform:translateX(-3px); }
+  70%{ transform:translateX(3px); }
+}
 
-  .chip{
-    position:absolute;
-    width: 44px; height:44px;
-    border-radius:50%;
-    display:flex; align-items:center; justify-content:center;
-    background: linear-gradient(160deg,#1b2531,#0e141b);
-    border: 1.5px solid #33465a;
-    color: var(--text);
-    font-family:'JetBrains Mono', monospace;
-    font-weight:700; font-size:15px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.4);
-    cursor:pointer;
-    will-change: transform;
-    transition: border-color .15s, box-shadow .15s;
-  }
-  .chip:active{ transform: scale(0.92); }
-  .chip.wrong{
-    border-color: var(--coral);
-    box-shadow: 0 0 14px rgba(255,92,108,0.7);
-    animation: shake .3s;
-  }
-  .chip.correct{
-    border-color: var(--mint);
-    box-shadow: 0 0 18px rgba(110,231,183,0.8);
-    transition: opacity .4s, border-color .15s, box-shadow .15s;
-  }
-  .chip.correct.fade{ opacity: 0; }
-  @keyframes shake{
-    0%,100%{ transform: translateX(0); }
-    25%{ transform: translateX(-4px); }
-    75%{ transform: translateX(4px); }
-  }
+.overlay{
+  position:absolute; inset:0;
+  background:rgba(10,11,14,0.92);
+  display:flex; align-items:center; justify-content:center;
+  flex-direction:column; gap:16px;
+  padding:24px;
+  text-align:center;
+  z-index:10;
+}
+.overlay.hidden{ display:none; }
+.overlay h1{ font-size:24px; margin:0; letter-spacing:1px; }
+.overlay h1.accent{ color:var(--accent); }
+.overlay h1.warn{ color:var(--bad); }
+.overlay h1.win{ color:var(--good); }
+.overlay p{ color:var(--sub); margin:0; font-size:14px; line-height:1.6; max-width:320px; }
+.overlay .time-readout{ font-family:"Courier New",monospace; font-size:15px; color:var(--text); }
+.result-table{
+  font-family:"Courier New",monospace;
+  font-size:13px;
+  width:100%; max-width:280px;
+  max-height:34vh;
+  overflow-y:auto;
+  border-top:1px solid var(--line);
+  padding-top:8px;
+}
+.result-table .row{ display:flex; justify-content:space-between; padding:3px 4px; color:var(--sub); }
+.result-table .row span:last-child{ color:var(--text); }
+.total-row{
+  display:flex; justify-content:space-between;
+  width:100%; max-width:280px;
+  font-family:"Courier New",monospace;
+  font-size:17px; font-weight:700;
+  border-top:1px solid var(--line);
+  padding-top:10px;
+  color:var(--good);
+}
+button.btn{
+  font-weight:600; font-size:16px;
+  padding:12px 30px;
+  border-radius:4px;
+  border:1px solid var(--accent);
+  cursor:pointer;
+  background:var(--accent);
+  color:#0c1214;
+}
+button.btn:active{ opacity:0.8; }
+button.btn.secondary{ background:transparent; color:var(--text); border:1px solid var(--line); }
 
-  /* ---------- OVERLAYS ---------- */
-  .overlay{
-    position:absolute; inset:0;
-    background: rgba(6,9,13,0.86);
-    backdrop-filter: blur(2px);
-    display:flex; align-items:center; justify-content:center;
-    flex-direction:column; gap:16px;
-    padding: 24px;
-    text-align:center;
-    z-index: 10;
-  }
-  .overlay.hidden{ display:none; }
-  .overlay h1{
-    font-size: 26px; margin:0; letter-spacing:1px;
-  }
-  .overlay h1.accent{ color: var(--cyan); text-shadow:0 0 14px rgba(82,224,232,0.6); }
-  .overlay h1.warn{ color: var(--coral); text-shadow:0 0 14px rgba(255,92,108,0.6); }
-  .overlay h1.win{ color: var(--mint); text-shadow:0 0 14px rgba(110,231,183,0.6); }
-  .overlay p{ color: var(--muted); margin:0; font-size:14px; line-height:1.6; max-width:340px; }
-  .overlay .time-readout{
-    font-family:'JetBrains Mono', monospace;
-    font-size: 15px; color: var(--text);
-  }
-  .result-table{
-    font-family:'JetBrains Mono', monospace;
-    font-size: 13px;
-    width: 100%; max-width: 300px;
-    max-height: 34vh;
-    overflow-y:auto;
-    border-top: 1px solid var(--panel-line);
-    padding-top: 8px;
-  }
-  .result-table .row{
-    display:flex; justify-content:space-between;
-    padding: 3px 4px;
-    color: var(--muted);
-  }
-  .result-table .row span:last-child{ color: var(--text); }
-  .total-row{
-    display:flex; justify-content:space-between;
-    width:100%; max-width:300px;
-    font-family:'JetBrains Mono', monospace;
-    font-size: 17px; font-weight:700;
-    border-top: 1px solid var(--panel-line);
-    padding-top: 10px;
-    color: var(--mint);
-  }
-
-  button.btn{
-    font-family:'Space Grotesk', sans-serif;
-    font-weight:600; font-size:16px;
-    padding: 13px 34px;
-    border-radius: 999px;
-    border: none;
-    cursor:pointer;
-    background: var(--cyan);
-    color: #06272a;
-    box-shadow: 0 0 18px rgba(82,224,232,0.5);
-    transition: transform .12s;
-  }
-  button.btn:active{ transform: scale(0.95); }
-  button.btn.secondary{
-    background: transparent;
-    color: var(--text);
-    border: 1px solid var(--panel-line);
-    box-shadow:none;
-  }
-
-  footer{
-    padding: 8px 16px 18px;
-    text-align:center;
-    color: var(--muted);
-    font-size:11px;
-    letter-spacing:1px;
-  }
+footer{ padding:8px 16px 18px; text-align:center; color:var(--sub); font-size:11px; }
 </style>
 </head>
 <body>
@@ -275,17 +168,17 @@
 
   <header>
     <div class="target-block">
-      <span class="target-label">TARGET <span id="targetCount" class="mono">×1</span></span>
-      <div class="target-badges mono" id="targetBadges"></div>
+      <span class="target-label">対象 <span id="targetCount" class="num">×1</span></span>
+      <div class="target-badges num" id="targetBadges"></div>
     </div>
     <div class="hud">
       <div class="hud-item">
         <div class="hud-label">経過</div>
-        <div class="hud-value mono" id="elapsedVal">0.0s</div>
+        <div class="hud-value num" id="elapsedVal">0.0s</div>
       </div>
       <div class="hud-item">
         <div class="hud-label">残り</div>
-        <div class="hud-value mono" id="countdownVal">10.0s</div>
+        <div class="hud-value num" id="countdownVal">10.0s</div>
       </div>
     </div>
   </header>
@@ -294,15 +187,13 @@
 
   <div id="arenaWrap">
     <div id="arena">
-      <div id="sweep"></div>
-      <!-- overlays injected here -->
       <div class="overlay" id="ovStart">
         <h1 class="accent">SIGNAL LOCK</h1>
-        <p>上に表示された数字(1〜50)と同じ「信号」がエリア内を反射しながら移動しています。ラウンドが進むごとに探す信号の数が1つずつ増えます。全部タップしたら次のラウンドへ。全10ラウンド、タイムアウトすると失敗です。</p>
+        <p>上に出た番号と同じ数字を、動き回るチップの中から探してタップ。ラウンドごとに対象が1つ増える。全10ラウンド、制限時間切れで終了。</p>
         <button class="btn" id="btnStart">スタート</button>
       </div>
       <div class="overlay hidden" id="ovClear">
-        <h1 class="win">LOCKED</h1>
+        <h1 class="win">CLEAR</h1>
         <p class="time-readout" id="clearRoundTime"></p>
         <button class="btn" id="btnNext">次へ</button>
       </div>
@@ -320,12 +211,12 @@
     </div>
   </div>
 
-  <footer>ROUND <span id="roundLabel" class="mono">0</span> / 10</footer>
+  <footer>ROUND <span id="roundLabel" class="num">0</span> / 10</footer>
 </div>
 
 <script>
 (function(){
-  const CONFIG = {
+  const conf = {
     totalRounds: 10,
     decoyCount: 10,
     numMin: 1,
@@ -333,7 +224,7 @@
     baseCountdown: 10,
     countdownStep: 5,
     chipRadius: 22,
-    minSpeed: 60,   // px/sec
+    minSpeed: 60,
     maxSpeed: 130
   };
 
@@ -351,11 +242,11 @@
   const ovWin = document.getElementById('ovWin');
 
   let round = 0;
-  let targetValues = [];   // this round's target numbers (length === round)
+  let targetValues = [];
   let foundValues = new Set();
   let numbers = [];
   let elapsed = 0;
-  let countdown = CONFIG.baseCountdown;
+  let countdown = conf.baseCountdown;
   let roundActive = false;
   let rafId = null;
   let lastTime = null;
@@ -364,13 +255,13 @@
 
   function buildPips(){
     pipsEl.innerHTML = '';
-    for(let i=1;i<=CONFIG.totalRounds;i++){
+    for(let i=1;i<=conf.totalRounds;i++){
       const d = document.createElement('div');
       d.className = 'pip';
-      d.dataset.i = i;
       pipsEl.appendChild(d);
     }
   }
+
   function updatePips(){
     [...pipsEl.children].forEach((el,idx)=>{
       const i = idx+1;
@@ -393,40 +284,36 @@
 
   function pickTargetValues(count){
     const values = new Set();
-    while(values.size < count){
-      values.add(randInt(CONFIG.numMin, CONFIG.numMax));
-    }
+    while(values.size < count) values.add(randInt(conf.numMin, conf.numMax));
     return [...values];
   }
 
   function generateNumbers(){
     clearChips();
     measureArena();
-    // decoys: random values not already used as targets, all unique
     const used = new Set(targetValues);
     const decoys = [];
-    while(decoys.length < CONFIG.decoyCount){
-      const v = randInt(CONFIG.numMin, CONFIG.numMax);
+    while(decoys.length < conf.decoyCount){
+      const v = randInt(conf.numMin, conf.numMax);
       if(!used.has(v)){ used.add(v); decoys.push(v); }
     }
     const arr = [
       ...targetValues.map(v=>({ value:v, isTarget:true })),
       ...decoys.map(v=>({ value:v, isTarget:false }))
     ];
-    // shuffle
     for(let i=arr.length-1;i>0;i--){
       const j = randInt(0,i);
       [arr[i],arr[j]] = [arr[j],arr[i]];
     }
-    const R = CONFIG.chipRadius;
+    const R = conf.chipRadius;
     arr.forEach(item=>{
       const el = document.createElement('div');
-      el.className = 'chip mono';
+      el.className = 'chip num';
       el.textContent = item.value;
       arena.appendChild(el);
       const x = randInt(R, Math.max(R, areaW - R));
       const y = randInt(R, Math.max(R, areaH - R));
-      const speed = randInt(CONFIG.minSpeed, CONFIG.maxSpeed);
+      const speed = randInt(conf.minSpeed, conf.maxSpeed);
       const angle = Math.random()*Math.PI*2;
       const n = {
         el, value: item.value, isTarget: item.isTarget,
@@ -498,7 +385,7 @@
     round = r;
     targetValues = pickTargetValues(round);
     foundValues = new Set();
-    countdown = CONFIG.baseCountdown + (round - 1) * CONFIG.countdownStep;
+    countdown = conf.baseCountdown + (round - 1) * conf.countdownStep;
     elapsed = 0;
     lastTime = null;
     roundActive = true;
@@ -517,16 +404,13 @@
       numbers = numbers.filter(x => x !== n);
       renderTargetBadges();
       requestAnimationFrame(()=> n.el.classList.add('fade'));
-      setTimeout(()=> n.el.remove(), 450);
+      setTimeout(()=> n.el.remove(), 400);
       if(foundValues.size === targetValues.length){
         roundActive = false;
         cancelAnimationFrame(rafId);
         roundTimes.push(elapsed);
-        if(round === CONFIG.totalRounds){
-          showWin();
-        } else {
-          showRoundClear();
-        }
+        if(round === conf.totalRounds) showWin();
+        else showRoundClear();
       }
     } else {
       n.el.classList.remove('wrong');
@@ -540,7 +424,7 @@
     roundActive = false;
     cancelAnimationFrame(rafId);
     document.getElementById('gameOverInfo').textContent =
-      `ラウンド ${round} / ${CONFIG.totalRounds} でタイムアウトしました。`;
+      `ラウンド ${round} / ${conf.totalRounds} でタイムアウト。`;
     show(ovGameOver);
   }
 
@@ -578,9 +462,7 @@
     roundTimes = [];
     startRound(1);
   });
-  document.getElementById('btnNext').addEventListener('click', ()=>{
-    startRound(round+1);
-  });
+  document.getElementById('btnNext').addEventListener('click', ()=> startRound(round+1));
   document.getElementById('btnRetry').addEventListener('click', ()=>{
     roundTimes = [];
     startRound(1);
@@ -591,7 +473,7 @@
   });
 
   buildPips();
-  window.addEventListener('resize', ()=>{ if(roundActive){ measureArena(); } });
+  window.addEventListener('resize', ()=>{ if(roundActive) measureArena(); });
 })();
 </script>
 </body>
